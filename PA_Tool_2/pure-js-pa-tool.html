@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PA Assist Tool</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f7fafc;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .banner {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .banner h1 {
+            font-size: 36px;
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .banner p {
+            font-size: 18px;
+            color: #6b7280;
+            margin: 0;
+        }
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            text-align: center;
+            color: #374151;
+            margin-bottom: 25px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .input-row {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            width: 100%;
+        }
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 16px;
+        }
+        .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+        .input-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .button-container {
+            text-align: center;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        .get-criteria-btn {
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .get-criteria-btn:hover:not(:disabled) {
+            background-color: #1d4ed8;
+        }
+        .get-criteria-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .clear-btn {
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .clear-btn:hover {
+            background-color: #4b5563;
+        }
+        .error {
+            background-color: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc2626;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .green-title { color: #059669; }
+        .purple-title { color: #7c3aed; }
+        .orange-title { color: #ea580c; }
+        .content-text {
+            line-height: 1.6;
+            color: #374151;
+        }
+        .content-text p {
+            margin: 8px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Section 1: Banner -->
+        <div class="banner">
+            <h1>PA Assist Tool</h1>
+            <p>Prior Authorization Clinical Criteria Assistant</p>
+        </div>
+
+        <!-- Section 2: Input Controls -->
+        <div class="card">
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="program-select">Program</label>
+                    <select id="program-select">
+                        <option value="">Select Program</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="cpt-select">CPT Code</label>
+                    <select id="cpt-select">
+                        <option value="">Select CPT Code</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Section 3: Get Criteria Button -->
+            <div class="button-container">
+                <button id="get-criteria-btn" class="get-criteria-btn" disabled>
+                    Get Criteria
+                </button>
+                <button id="clear-btn" class="clear-btn">
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="error-container" class="hidden"></div>
+
+        <!-- Section 4: Two Column Layout -->
+        <div id="results-two-column" class="two-column hidden">
+            <div class="card">
+                <h3 class="section-title green-title">Simplified Clinical Criteria</h3>
+                <div id="simplified-criteria" class="content-text"></div>
+            </div>
+
+            <div class="card">
+                <h3 class="section-title purple-title">Docs to Upload</h3>
+                <div id="docs-to-upload" class="content-text"></div>
+            </div>
+        </div>
+
+        <!-- Section 5: Clinical Criteria -->
+        <div id="clinical-criteria-section" class="card hidden">
+            <h3 class="section-title orange-title">Clinical Criteria</h3>
+            <div id="clinical-criteria" class="content-text"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data from your Excel file
+        const sampleData = [
+            {
+                "Program": "Vascular",
+                "CPT Code": 35390,
+                "Clinical Criteria": "Carotid endarterectomy is a procedure that involves making an incision into the internal carotid artery with surgical removal of atherosclerotic plaque and subsequent closure of the artery primarily or with a patch\\n• CEA is considered medical necessary when one of the following is met\\n    ◦ Symptomatic carotid stenosis-when there is documentation of both\\n       ▪ Carotid lesion corresponds anatomically to the individual's symptoms or CTA or MRA findings in the distribution of carotid lesion and one of the following:\\n           - 50-99% stenosis by angiogram, CTA, MRA\\n           - Carotid duplex >70% (the lower value should be >70% if reported as a range) otherwise CTA or MRA needed to confirm\\n       Documentation of any of the following\\n           - Transient ischemic attack (TIA)\\n           - Focal cerebral ischemia producing a non-disabling stroke\\n           - Transient monocular blindness (amaurosis fugax)\\n    ◦ Asymptomatic carotid stenosis (as documented by clinical notes):\\n       ▪ Stenosis between 70%-99% on carotid duplex, CTA, MRA, or angiogram within last 6 months. Radiologist/Surgeons read using NASCET criteria must be documented for CTA/MRA/angiogram, providing an precise degree of stenosis\\n",
+                "Simplified Clinical Criteria": "Carotid endarterectomy is a surgery where a doctor opens a blood vessel in the neck to clean out stuff that is blocking the blood flow. After cleaning it, the doctor closes the blood vessel again.\\n\\nThis surgery is usually needed when one of the following is true:\\n\\n1. The person has symptoms that show the blood vessel is blocked, and tests prove it.\\nThis means:\\nThe blocked area in the neck matches the part of the brain where the symptoms are coming from.\\nTests like scans or ultrasounds show the blood vessel is 50% to 99% blocked.\\nAlso, the person must have had one of these:\\n  - A mini-stroke that got better (called a TIA)\\n  - A mild stroke that didn't cause serious lasting problems\\n  - Temporary loss of vision in one eye\\n2. The person has no symptoms, but a recent test (within 6 months) shows the blood vessel is badly blocked (70% to 99%).\\nDoctors must clearly say how much the blood vessel is blocked, using special rules for reading the scan.\\n",
+                "Docs to Upload": "1) Clinical Notes\\n2) X-ray report\\n3) Imaging studies\\n4) CAT Scan"
+            },
+            {
+                "Program": "Vascular",
+                "CPT Code": 37215,
+                "Clinical Criteria": "Extracranial vertebral artery angioplasty with stent placement is considered medically necessary when all the following criteria are met:\\n- Failure of antiplatelet therapy or anticoagulation therapy\\n- One of the following recurrent symptoms after treatment of nonvascular etiologies:\\n  - Dizziness\\n  - Unilateral limb weakness\\n  - Dysarthria\\n  - Recurrent headache\\n  - Recurrent nausea/vomiting\\n  - Recurrent posterior circulation embolic stroke\\n- One of the following criteria are met:\\n  - 60-99% bilateral extracranial vertebral artery stenosis\\n  - 60-99% unilateral extracranial vertebral artery stenosis in the setting of any of the following:\\n- A dominant vertebral and hypoplastic contralateral vertebral\\n- Contralateral vertebral ends in posteroinferior cerebellar\\n- Contralateral vertebral is occluded",
+                "Simplified Clinical Criteria": "Fixing a blocked neck artery with a small tube (stent) is needed when all of these are true:\\n1) Medicines to stop blood clots didn't work.\\n2) The person keeps having symptoms like:\\n - Feeling dizzy\\n - Weakness on one side of the body\\n - Slurred speech\\n - Headaches that keep coming back\\n - Nausea or vomiting that comes back\\n - A certain type of stroke that happens again\\n3) And one of these is also true:\\n    - Both neck arteries that go to the back of the brain are mostly blocked (60–99%)\\n    - One neck artery is mostly blocked (60–99%) and:\\n4) It's the main one doing the work because the other one is very small\\n5) The other one stops before reaching the brain\\n6) The other one is completely blocked",
+                "Docs to Upload": "1) Clinical Notes\\n2) X-ray report\\n3) CAT Scan\\n4) Blood test report"
+            },
+            {
+                "Program": "Intravascular Ultrasound",
+                "CPT Code": 37252,
+                "Clinical Criteria": "The use of intravascular ultrasound is considered medically appropriate for the evaluation and treatment of:\\n- Iliac vein or Inferior Vena Cava obstruction\\n- Upper extremity venous obstruction\\n- Superior Vena Cava Syndrome\\n- Nutcracker Syndrome\\n\\nIVUS is indicated for use during a diagnostic procedure and again at the time of intervention for any of the following:\\n- To diagnose or perform sizing measurements for urgent or elective thoracic aortic disease, if an approved indication is suspected\\n- If requested to diagnose or perform sizing measurements for urgent or elective abdominal aortic disease, if an approved indication is suspected\\n- Evaluation and treatment of iliac vein, abdominal or central Vena Cava obstruction\\n- Appropriate for lower extremity PAD or peripheral aneurysm indication",
+                "Simplified Clinical Criteria": "Using a special type of ultrasound that looks inside blood vessels is helpful and okay to use when checking or treating:\\n - Blockages in large veins in the hip or belly\\n - Blockages in veins in the arms\\n - A condition where a big vein in the chest gets blocked\\n - A condition where a vein near the kidney gets squeezed\\n\\nThis ultrasound can be used during tests and treatments for things like:\\n - To check or measure problems in a big blood vessel in the chest, if there's a reason to think something is wrong\\n - To check or measure problems in a big blood vessel in the belly, if there's a reason to think something is wrong\\n - To check and help treat blockages in big veins in the belly or center of the body\\n\\nIt's also okay to use it to help with blood flow problems in the legs or swelling in certain blood vessels\\n",
+                "Docs to Upload": "1) Clinical Notes\\n2) X-ray report\\n3) CAT Scan\\n4) UltraSound"
+            },
+            {
+                "Program": "Intravascular Ultrasound",
+                "CPT Code": 37253,
+                "Clinical Criteria": "IVUS is indicated in the absence of pre-procedural imaging (such as MRA, CTA, or\\nduplex ultrasound) in the evaluation of any of the following:\\n• Aortic bifurcation and Iliac arteries (including Common Iliac artery, External Iliac artery\\n  and Internal Iliac artery)\\n    ◦ To minimize contrast in patients at increased risk for contrast related nephropathy\\n    ◦ Confirm luminal placement of wire after crossing an occluded vessel segment\\n    ◦ If there is concern for post intervention arterial dissection\\n• Femoral- Popliteal Arteries\\n    ◦ To minimize contrast in patients at increased risk for contrast related nephropathy\\n    ◦ Ambiguous lesion or stenosis\\n    ◦ Filling defect on angiography\\n    ◦ Confirm luminal placement of wire after crossing an occluded vessel segment\\n    ◦ If there is concern for post-intervention arterial dissection\\n    ◦ Vessel sizing prior to use of Drug Coated Balloon or primary stenting 2,3,4 5\\n        ▪ In the absence or pre-procedural imaging (such as MRA, CTA or duplex\\n          ultrasound)\\n    ◦ Determine appropriate therapeutic modality based on plaque morphology and\\n      burden\\n        ▪ In the absence or pre-procedural imaging (such as MRA, CTA or duplex\\n          ultrasound)\\r",
+                "Simplified Clinical Criteria": "When to Use IVUS (a special kind of imaging inside blood vessels):\\n\\nIVUS can help when other pictures (like MRI, CT scan, or ultrasound) were not done before the procedure.\\n\\nFor blood vessels in the lower belly and hips:\\n - To use less dye in people who might get kidney problems from the dye\\n - To make sure a wire is in the right place after going through a blocked blood vessel\\n - To check if the blood vessel is torn after a treatment\\n\\nFor blood vessels in the thigh and behind the knee:\\n - To use less dye in people who might get kidney problems from the dye\\n - When there is something unclear or unusual in the blood vessel\\n - When an X-ray shows something might be blocking the blood flow\\n - To make sure a wire is in the right place after going through a blocked blood vessel\\n - To check if the blood vessel is torn after a treatment\\n - To measure the size of the blood vessel before using certain balloons or stents\\n      Only when no other pictures were taken before\\n - To decide the best treatment based on how much and what kind of buildup is in the blood vessel\\n      Only when no other pictures were taken before",
+                "Docs to Upload": "1) Clinical Notes\\n2) UltraSound"
+            }
+        ];
+
+        // Initialize the application
+        let currentData = null;
+
+        function initializeApp() {
+            console.log('Initializing PA Assist Tool...');
+            
+            // Get unique programs
+            const programs = [...new Set(sampleData.map(item => item.Program))];
+            
+            // Populate Program dropdown
+            const programSelect = document.getElementById('program-select');
+            programs.forEach(program => {
+                const option = document.createElement('option');
+                option.value = program;
+                option.textContent = program;
+                programSelect.appendChild(option);
+            });
+            
+            // Initialize CPT dropdown as empty (will be populated when program is selected)
+            const cptSelect = document.getElementById('cpt-select');
+            cptSelect.innerHTML = '<option value="">Select CPT Code</option>';
+            
+            // Add event listeners
+            setupEventListeners();
+            
+            console.log('PA Assist Tool initialized successfully!');
+        }
+
+        function updateCPTDropdown(selectedProgram) {
+            const cptSelect = document.getElementById('cpt-select');
+            
+            // Clear current options
+            cptSelect.innerHTML = '<option value="">Select CPT Code</option>';
+            
+            if (selectedProgram) {
+                // Get CPT codes for the selected program
+                const cptCodes = sampleData
+                    .filter(item => item.Program === selectedProgram)
+                    .map(item => item["CPT Code"]);
+                
+                // Remove duplicates and sort
+                const uniqueCPTCodes = [...new Set(cptCodes)].sort((a, b) => a - b);
+                
+                // Populate CPT dropdown with filtered codes
+                uniqueCPTCodes.forEach(code => {
+                    const option = document.createElement('option');
+                    option.value = code;
+                    option.textContent = code;
+                    cptSelect.appendChild(option);
+                });
+                
+                console.log(`Updated CPT dropdown for ${selectedProgram}:`, uniqueCPTCodes);
+            }
+        }
+
+        function setupEventListeners() {
+            const programSelect = document.getElementById('program-select');
+            const cptSelect = document.getElementById('cpt-select');
+            const getCriteriaBtn = document.getElementById('get-criteria-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // Enable/disable button based on selections
+            function updateButtonState() {
+                const programSelected = programSelect.value !== '';
+                const cptSelected = cptSelect.value !== '';
+                getCriteriaBtn.disabled = !(programSelected && cptSelected);
+            }
+            
+            // Handle program selection change
+            programSelect.addEventListener('change', function() {
+                const selectedProgram = programSelect.value;
+                
+                // Update CPT dropdown based on selected program
+                updateCPTDropdown(selectedProgram);
+                
+                // Clear any existing results when program changes
+                hideResults();
+                
+                // Update button state
+                updateButtonState();
+            });
+            
+            cptSelect.addEventListener('change', updateButtonState);
+            
+            // Handle Get Criteria button click
+            getCriteriaBtn.addEventListener('click', handleGetCriteria);
+            
+            // Handle Clear button click
+            clearBtn.addEventListener('click', handleClear);
+        }
+
+        function hideResults() {
+            document.getElementById('results-two-column').classList.add('hidden');
+            document.getElementById('clinical-criteria-section').classList.add('hidden');
+            document.getElementById('error-container').classList.add('hidden');
+        }
+
+        function handleClear() {
+            console.log('Clearing all inputs and outputs...');
+            
+            // Reset Program dropdown to default
+            const programSelect = document.getElementById('program-select');
+            programSelect.value = '';
+            
+            // Reset CPT dropdown to default (empty)
+            const cptSelect = document.getElementById('cpt-select');
+            cptSelect.innerHTML = '<option value="">Select CPT Code</option>';
+            
+            // Disable Get Criteria button
+            const getCriteriaBtn = document.getElementById('get-criteria-btn');
+            getCriteriaBtn.disabled = true;
+            
+            // Hide all results and error messages
+            hideResults();
+            
+            // Clear content from all output sections
+            document.getElementById('simplified-criteria').innerHTML = '';
+            document.getElementById('docs-to-upload').innerHTML = '';
+            document.getElementById('clinical-criteria').innerHTML = '';
+            document.getElementById('error-container').innerHTML = '';
+            
+            console.log('All inputs and outputs cleared successfully!');
+        }
+
+        function handleGetCriteria() {
+            const programSelect = document.getElementById('program-select');
+            const cptSelect = document.getElementById('cpt-select');
+            const errorContainer = document.getElementById('error-container');
+            
+            const selectedProgram = programSelect.value;
+            const selectedCPT = parseInt(cptSelect.value);
+            
+            console.log('Getting criteria for:', selectedProgram, selectedCPT);
+            
+            // Clear previous error
+            errorContainer.innerHTML = '';
+            errorContainer.classList.add('hidden');
+            
+            // Find matching data
+            const matchingData = sampleData.find(item => 
+                item.Program === selectedProgram && item["CPT Code"] === selectedCPT
+            );
+            
+            if (!matchingData) {
+                showError('No criteria found for the selected Program and CPT Code combination.');
+                return;
+            }
+            
+            // Display results
+            displayResults(matchingData);
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+            errorContainer.classList.remove('hidden');
+            
+            // Hide results
+            document.getElementById('results-two-column').classList.add('hidden');
+            document.getElementById('clinical-criteria-section').classList.add('hidden');
+        }
+
+        function displayResults(data) {
+            // Show results sections
+            document.getElementById('results-two-column').classList.remove('hidden');
+            document.getElementById('clinical-criteria-section').classList.remove('hidden');
+            
+            // Format and display content
+            document.getElementById('simplified-criteria').innerHTML = formatText(data["Simplified Clinical Criteria"]);
+            document.getElementById('docs-to-upload').innerHTML = formatText(data["Docs to Upload"]);
+            document.getElementById('clinical-criteria').innerHTML = formatText(data["Clinical Criteria"]);
+        }
+
+        function formatText(text) {
+            return text.split('\\n').map(line => `<p>${line}</p>`).join('');
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>

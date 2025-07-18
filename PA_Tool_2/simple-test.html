@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f7fafc;
+        }
+        #root {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <h1>Loading...</h1>
+        <p>If you see this, the HTML is loading but React is not working.</p>
+    </div>
+    
+    <script>
+        console.log('HTML loaded successfully');
+        console.log('About to load React bundle...');
+        
+        // Add error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            document.getElementById('root').innerHTML = '<h1>Error!</h1><p>' + e.error + '</p>';
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            document.getElementById('root').innerHTML = '<h1>Promise Error!</h1><p>' + e.reason + '</p>';
+        });
+    </script>
+    
+    <script src="./dist/browser-main.js"></script>
+    
+    <script>
+        // Check if React loaded
+        setTimeout(() => {
+            console.log('Checking if React rendered...');
+            const rootContent = document.getElementById('root').innerHTML;
+            console.log('Root content:', rootContent);
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f7fafc;
+        }
+        .debug-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .error {
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #d32f2f;
+        }
+        #root {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <h2>Debug Information</h2>
+        <p>HTML loaded successfully!</p>
+        <p>Current time: <span id="current-time"></span></p>
+        <p>JavaScript status: <span id="js-status">Loading...</span></p>
+        <p>Bundle load status: <span id="bundle-status">Not loaded</span></p>
+    </div>
+    
+    <div id="error-container"></div>
+    
+    <div id="root">
+        <h1>Waiting for React...</h1>
+        <p>This should be replaced by React content</p>
+    </div>
+    
+    <script>
+        // Basic JavaScript test
+        console.log('=== DEBUG TEST START ===');
+        
+        // Update current time
+        document.getElementById('current-time').textContent = new Date().toLocaleTimeString();
+        document.getElementById('js-status').textContent = 'Working!';
+        document.getElementById('js-status').style.color = 'green';
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('=== GLOBAL ERROR ===');
+            console.error('Message:', e.message);
+            console.error('Filename:', e.filename);
+            console.error('Line:', e.lineno);
+            console.error('Column:', e.colno);
+            console.error('Error object:', e.error);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `
+                <h3>JavaScript Error Detected!</h3>
+                <p><strong>Message:</strong> ${e.message}</p>
+                <p><strong>File:</strong> ${e.filename}</p>
+                <p><strong>Line:</strong> ${e.lineno}:${e.colno}</p>
+                <p><strong>Stack:</strong> ${e.error ? e.error.stack : 'No stack trace'}</p>
+            `;
+            document.getElementById('error-container').appendChild(errorDiv);
+        });
+        
+        // Promise rejection handler
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('=== UNHANDLED PROMISE REJECTION ===');
+            console.error('Reason:', e.reason);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `
+                <h3>Promise Rejection!</h3>
+                <p><strong>Reason:</strong> ${e.reason}</p>
+            `;
+            document.getElementById('error-container').appendChild(errorDiv);
+        });
+        
+        // Test if bundle loads
+        console.log('About to load bundle...');
+        document.getElementById('bundle-status').textContent = 'Loading...';
+        document.getElementById('bundle-status').style.color = 'orange';
+        
+        // Check if React rendered after some time
+        setTimeout(() => {
+            console.log('=== CHECKING REACT RENDER ===');
+            const rootContent = document.getElementById('root').innerHTML;
+            console.log('Root content length:', rootContent.length);
+            console.log('Root content:', rootContent);
+            
+            if (rootContent.includes('Waiting for React')) {
+                console.log('React did NOT render - still showing placeholder');
+                document.getElementById('bundle-status').textContent = 'Failed to render React';
+                document.getElementById('bundle-status').style.color = 'red';
+            } else {
+                console.log('React rendered successfully!');
+                document.getElementById('bundle-status').textContent = 'React rendered!';
+                document.getElementById('bundle-status').style.color = 'green';
+            }
+        }, 3000);
+        
+        console.log('=== DEBUG SETUP COMPLETE ===');
+    </script>
+    
+    <script src="./dist/vanilla-app.js"></script>
+    
+    <script>
+        console.log('=== AFTER BUNDLE LOAD ===');
+        document.getElementById('bundle-status').textContent = 'Bundle loaded';
+        document.getElementById('bundle-status').style.color = 'blue';
+    </script>
+</body>
+</html>
